@@ -6,12 +6,12 @@ The model is built using TensorFlow/Keras and trained on a real-world medical im
 
 ---
 
-## 🔍 Problem Statement
+##  Problem Statement
 Pneumonia is a serious respiratory disease that requires timely diagnosis. Manual interpretation of chest X-rays can be time-consuming and requires expert radiologists. This project aims to automate pneumonia detection using Convolutional Neural Networks to assist in medical image analysis.
 
 ---
 
-## 🧠 Approach
+##  Approach
 - Designed a deep CNN architecture using Conv2D, MaxPooling, Dropout, and Dense layers
 - Applied image preprocessing and data augmentation to improve generalization
 - Trained the model for binary classification using sigmoid activation and binary cross-entropy loss
@@ -19,7 +19,7 @@ Pneumonia is a serious respiratory disease that requires timely diagnosis. Manua
 
 ---
 
-## 📊 Dataset
+##  Dataset
 - Source: Kaggle – Chest X-Ray Images (Pneumonia)
 - Classes: Normal, Pneumonia
 - Image Type: Chest X-ray images
@@ -27,7 +27,7 @@ Pneumonia is a serious respiratory disease that requires timely diagnosis. Manua
 
 ---
 
-## ⚙️ Technologies Used
+##  Technologies Used
 - Python
 - TensorFlow & Keras
 - Convolutional Neural Networks (CNN)
