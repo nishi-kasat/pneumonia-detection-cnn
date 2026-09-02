@@ -1,0 +1,24 @@
+# Credentials / local configuration
+kaggle.json
+.kaggle/
+.env
+.env.*
+
+# Downloaded dataset and generated model artifacts
+chest_xray/
+*.zip
+*.h5
+*.keras
+
+# Generated XAI outputs
+outputs/
+
+# Python / notebook runtime files
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
