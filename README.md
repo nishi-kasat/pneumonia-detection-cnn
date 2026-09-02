@@ -1,57 +1,68 @@
-# Pneumonia Detection using Convolutional Neural Networks (CNN)
+# Explainable Pneumonia Detection using CNN
 
-This project implements an end-to-end Convolutional Neural Network (CNN) to classify chest X-ray images as **Normal** or **Pneumonia** using deep learning techniques.
+This project implements an end-to-end Convolutional Neural Network (CNN) to classify chest X-ray images as **Normal** or **Pneumonia**, with **Grad-CAM explainability** to visualize image regions that influence the model's prediction.
 
-The model is built using TensorFlow/Keras and trained on a real-world medical imaging dataset. The project demonstrates the complete workflow from dataset loading to model evaluation.
+## Problem Statement
 
----
+Pneumonia detection from chest X-rays is a challenging medical imaging task. A high-performing classifier is more useful when its predictions can also be inspected. This project therefore combines binary CNN classification with visual explanations of the model's pneumonia score.
 
-##  Problem Statement
-Pneumonia is a serious respiratory disease that requires timely diagnosis. Manual interpretation of chest X-rays can be time-consuming and requires expert radiologists. This project aims to automate pneumonia detection using Convolutional Neural Networks to assist in medical image analysis.
+## Approach
 
----
+- Downloaded the Chest X-Ray Images (Pneumonia) dataset using the Kaggle API
+- Preprocessed and augmented chest X-ray images
+- Built a CNN using Conv2D, MaxPooling, Dropout, Flatten, and Dense layers
+- Trained the model for binary classification using sigmoid activation and binary cross-entropy
+- Evaluated the classifier using accuracy, confusion matrix, precision, recall, and F1-score
+- Added **Grad-CAM** to identify spatial regions contributing to the pneumonia prediction
+- Visualized the original X-ray, Grad-CAM heatmap, and heatmap overlay
 
-##  Approach
-- Designed a deep CNN architecture using Conv2D, MaxPooling, Dropout, and Dense layers
-- Applied image preprocessing and data augmentation to improve generalization
-- Trained the model for binary classification using sigmoid activation and binary cross-entropy loss
-- Evaluated model performance using accuracy, confusion matrix, precision, recall, and F1-score
+## Explainability
 
----
+**Grad-CAM (Gradient-weighted Class Activation Mapping)** uses gradients flowing into the final convolutional feature maps to produce a coarse localization map for the target prediction.
 
-##  Dataset
-- Source: Kaggle – Chest X-Ray Images (Pneumonia)
-- Classes: Normal, Pneumonia
-- Image Type: Chest X-ray images
-- Dataset is downloaded programmatically using the Kaggle API
+For this project, the explanation pipeline is:
 
----
+`Chest X-ray → CNN → Pneumonia probability → Grad-CAM → Heatmap → Overlay`
 
-##  Technologies Used
+The explanation is intended to make model behavior easier to inspect and debug. It is not a clinical diagnosis and should not be treated as evidence that a highlighted region is medically causal.
+
+## Project Structure
+
+```text
+.
+├── Pneumonia_Detection_using_CNN.ipynb
+├── explainability/
+│   ├── gradcam.py
+│   └── README.md
+└── README.md
+```
+
+## Technologies Used
+
 - Python
-- TensorFlow & Keras
-- Convolutional Neural Networks (CNN)
+- TensorFlow / Keras
+- Convolutional Neural Networks
+- Grad-CAM / Explainable AI (XAI)
+- NumPy
+- OpenCV
+- Matplotlib
+- Scikit-learn
 - Google Colab
 - Kaggle API
-- Matplotlib, NumPy, Scikit-learn
-
----
 
 ## How to Run
-1. Open the notebook in Google Colab
-2. Configure Kaggle API credentials
-3. Run all cells sequentially to download the dataset, train the CNN model, and evaluate performance
 
-> Note: Model training may take time depending on available GPU resources.
+1. Open the notebook in Google Colab.
+2. Configure Kaggle API credentials.
+3. Run the existing dataset preparation, training, and evaluation cells.
+4. Import `make_gradcam_heatmap` and `overlay_gradcam` from `explainability/gradcam.py`.
+5. Run the Grad-CAM example in `explainability/README.md` on a test X-ray.
 
----
+## Future Work
 
-##  Results
-The CNN model successfully learns discriminative features from chest X-ray images and achieves strong classification performance, demonstrating the effectiveness of CNNs in medical image analysis.
+- Compare Grad-CAM with LIME or SHAP
+- Evaluate explanation stability across correctly and incorrectly classified images
+- Compare explanations across Normal and Pneumonia samples
+- Add a lightweight inference interface for uploading an X-ray and viewing the prediction with its explanation
 
----
-
-##  Conclusion
-This project highlights the practical application of Convolutional Neural Networks in healthcare-related computer vision tasks and showcases an end-to-end deep learning workflow suitable for real-world scenarios.
-
----
+> **Disclaimer:** This is an educational machine-learning project. Model predictions and Grad-CAM visualizations are not medical advice or a substitute for professional radiological assessment.
