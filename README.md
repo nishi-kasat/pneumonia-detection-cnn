@@ -1,68 +1,119 @@
 # Explainable Pneumonia Detection using CNN
 
-This project implements an end-to-end Convolutional Neural Network (CNN) to classify chest X-ray images as **Normal** or **Pneumonia**, with **Grad-CAM explainability** to visualize image regions that influence the model's prediction.
+An end-to-end **medical-imaging + Explainable AI (XAI)** project that classifies chest X-rays as **Normal** or **Pneumonia** and uses **Grad-CAM** to visualize image regions associated with the model's prediction.
 
-## Problem Statement
+> **Educational project:** predictions and explanations are not medical advice or a substitute for professional radiological assessment.
 
-Pneumonia detection from chest X-rays is a challenging medical imaging task. A high-performing classifier is more useful when its predictions can also be inspected. This project therefore combines binary CNN classification with visual explanations of the model's pneumonia score.
+## Why this project is stronger than a standard CNN classifier
 
-## Approach
+A classifier can report *what* it predicts without showing *where* the prediction is coming from. This project adds an interpretability layer so model behavior can be inspected alongside its prediction.
 
-- Downloaded the Chest X-Ray Images (Pneumonia) dataset using the Kaggle API
-- Preprocessed and augmented chest X-ray images
-- Built a CNN using Conv2D, MaxPooling, Dropout, Flatten, and Dense layers
-- Trained the model for binary classification using sigmoid activation and binary cross-entropy
-- Evaluated the classifier using accuracy, confusion matrix, precision, recall, and F1-score
-- Added **Grad-CAM** to identify spatial regions contributing to the pneumonia prediction
-- Visualized the original X-ray, Grad-CAM heatmap, and heatmap overlay
+```text
+Chest X-ray → Preprocessing / augmentation → CNN → Pneumonia probability
+                                              ↓
+                                           Grad-CAM
+                                              ↓
+                                  Heatmap + X-ray overlay
+                                              ↓
+                                  TP / TN / FP / FN analysis
+```
 
-## Explainability
+## Key Features
 
-**Grad-CAM (Gradient-weighted Class Activation Mapping)** uses gradients flowing into the final convolutional feature maps to produce a coarse localization map for the target prediction.
+- Binary chest X-ray classification with TensorFlow/Keras
+- Data augmentation and normalized image preprocessing
+- Confusion-matrix, precision, recall and F1 evaluation
+- **Grad-CAM** explanations from the last convolutional layer
+- Representative **true-positive, true-negative, false-positive and false-negative** analysis
+- Explanation-stability check under a small brightness perturbation
+- Reusable XAI utilities in `explainability/gradcam.py`
+- Standalone analysis script in `xai_analysis.py`
 
-For this project, the explanation pipeline is:
+## Dataset
 
-`Chest X-ray → CNN → Pneumonia probability → Grad-CAM → Heatmap → Overlay`
+The project uses the **Chest X-Ray Images (Pneumonia)** dataset by Paul Mooney on Kaggle. The notebook downloads the dataset at runtime rather than committing medical images to the repository.
 
-The explanation is intended to make model behavior easier to inspect and debug. It is not a clinical diagnosis and should not be treated as evidence that a highlighted region is medically causal.
+## Grad-CAM
+
+**Gradient-weighted Class Activation Mapping (Grad-CAM)** uses gradients of the target output with respect to convolutional feature maps to create a coarse spatial importance map.
+
+For this binary classifier, the target is the positive **Pneumonia** output. The heatmap highlights regions that most influenced that score.
+
+A Grad-CAM highlight is evidence of model sensitivity, **not proof of a medically causal lesion or pathology**. Explanations should be evaluated together with prediction errors and, ideally, expert annotations.
+
+## XAI Error Analysis
+
+`xai_analysis.py` provides a reproducible workflow:
+
+1. Load the saved Keras model.
+2. Load a bounded, deterministic subset of the test set.
+3. Report precision, recall, F1 and ROC-AUC.
+4. Save a confusion matrix.
+5. Find representative TP/TN/FP/FN examples.
+6. Generate Grad-CAM visualizations for each available category.
+7. Apply a small brightness perturbation and compare heatmaps using cosine similarity.
+
+Outputs are written to `outputs/xai/` and are not committed by default.
 
 ## Project Structure
 
 ```text
 .
-├── Pneumonia_Detection_using_CNN.ipynb
+├── Pneumonia_Detection_using_CNN.ipynb   # training + evaluation notebook
 ├── explainability/
-│   ├── gradcam.py
-│   └── README.md
-└── README.md
+│   ├── gradcam.py                         # reusable Grad-CAM utilities
+│   └── README.md                          # notebook integration guide
+├── xai_analysis.py                        # XAI + error-analysis pipeline
+├── README.md
+└── .gitignore
 ```
 
-## Technologies Used
+## Tech Stack
 
-- Python
-- TensorFlow / Keras
-- Convolutional Neural Networks
-- Grad-CAM / Explainable AI (XAI)
-- NumPy
-- OpenCV
-- Matplotlib
-- Scikit-learn
-- Google Colab
-- Kaggle API
+**ML / DL:** Python, TensorFlow, Keras, CNNs, scikit-learn  
+**XAI:** Grad-CAM, explainability/error analysis  
+**Computer Vision:** OpenCV, NumPy, Matplotlib  
+**Workflow:** Google Colab, Kaggle API, Git/GitHub
 
-## How to Run
+## Running the Project
 
-1. Open the notebook in Google Colab.
-2. Configure Kaggle API credentials.
-3. Run the existing dataset preparation, training, and evaluation cells.
-4. Import `make_gradcam_heatmap` and `overlay_gradcam` from `explainability/gradcam.py`.
-5. Run the Grad-CAM example in `explainability/README.md` on a test X-ray.
+### 1. Train the model
 
-## Future Work
+Open `Pneumonia_Detection_using_CNN.ipynb` in Google Colab and run the dataset preparation, preprocessing, training and evaluation cells.
 
-- Compare Grad-CAM with LIME or SHAP
-- Evaluate explanation stability across correctly and incorrectly classified images
-- Compare explanations across Normal and Pneumonia samples
-- Add a lightweight inference interface for uploading an X-ray and viewing the prediction with its explanation
+**Never commit `kaggle.json`, API keys, tokens or other credentials.** Use Colab Secrets/environment variables or upload the credential only during a runtime session.
 
-> **Disclaimer:** This is an educational machine-learning project. Model predictions and Grad-CAM visualizations are not medical advice or a substitute for professional radiological assessment.
+### 2. Run Grad-CAM
+
+After loading the trained model:
+
+```python
+from explainability.gradcam import make_gradcam_heatmap, overlay_gradcam
+```
+
+See `explainability/README.md` for a complete visualization example.
+
+### 3. Run reproducible XAI analysis
+
+```bash
+pip install tensorflow scikit-learn opencv-python matplotlib numpy
+python xai_analysis.py \
+  --model pneumonia_cnn_model.h5 \
+  --data-dir /path/to/chest_xray \
+  --output-dir outputs/xai
+```
+
+For Colab, use `/content/chest_xray` and the saved model path.
+
+## Responsible XAI
+
+This project treats explainability as a **debugging and model-inspection tool**, not as a claim of clinical validity. A stronger medical-AI evaluation would additionally require external validation, calibration, subgroup analysis, leakage checks, expert review, and clinically meaningful localization ground truth.
+
+## Future Improvements
+
+- Compare Grad-CAM against LIME and SHAP where technically appropriate
+- Quantify explanation quality using expert/localization annotations
+- Evaluate explanation stability under multiple controlled perturbations
+- Add probability calibration and threshold analysis
+- Add a lightweight inference UI for prediction + explanation
+- Add automated tests and CI for the XAI utilities
