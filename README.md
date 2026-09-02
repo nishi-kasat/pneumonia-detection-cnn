@@ -1,57 +1,119 @@
-# Pneumonia Detection using Convolutional Neural Networks (CNN)
+# Explainable Pneumonia Detection using CNN
 
-This project implements an end-to-end Convolutional Neural Network (CNN) to classify chest X-ray images as **Normal** or **Pneumonia** using deep learning techniques.
+An end-to-end **medical-imaging + Explainable AI (XAI)** project that classifies chest X-rays as **Normal** or **Pneumonia** and uses **Grad-CAM** to visualize image regions associated with the model's prediction.
 
-The model is built using TensorFlow/Keras and trained on a real-world medical imaging dataset. The project demonstrates the complete workflow from dataset loading to model evaluation.
+> **Educational project:** predictions and explanations are not medical advice or a substitute for professional radiological assessment.
 
----
+## Why this project is stronger than a standard CNN classifier
 
-##  Problem Statement
-Pneumonia is a serious respiratory disease that requires timely diagnosis. Manual interpretation of chest X-rays can be time-consuming and requires expert radiologists. This project aims to automate pneumonia detection using Convolutional Neural Networks to assist in medical image analysis.
+A classifier can report *what* it predicts without showing *where* the prediction is coming from. This project adds an interpretability layer so model behavior can be inspected alongside its prediction.
 
----
+```text
+Chest X-ray → Preprocessing / augmentation → CNN → Pneumonia probability
+                                              ↓
+                                           Grad-CAM
+                                              ↓
+                                  Heatmap + X-ray overlay
+                                              ↓
+                                  TP / TN / FP / FN analysis
+```
 
-##  Approach
-- Designed a deep CNN architecture using Conv2D, MaxPooling, Dropout, and Dense layers
-- Applied image preprocessing and data augmentation to improve generalization
-- Trained the model for binary classification using sigmoid activation and binary cross-entropy loss
-- Evaluated model performance using accuracy, confusion matrix, precision, recall, and F1-score
+## Key Features
 
----
+- Binary chest X-ray classification with TensorFlow/Keras
+- Data augmentation and normalized image preprocessing
+- Confusion-matrix, precision, recall and F1 evaluation
+- **Grad-CAM** explanations from the last convolutional layer
+- Representative **true-positive, true-negative, false-positive and false-negative** analysis
+- Explanation-stability check under a small brightness perturbation
+- Reusable XAI utilities in `explainability/gradcam.py`
+- Standalone analysis script in `xai_analysis.py`
 
-##  Dataset
-- Source: Kaggle – Chest X-Ray Images (Pneumonia)
-- Classes: Normal, Pneumonia
-- Image Type: Chest X-ray images
-- Dataset is downloaded programmatically using the Kaggle API
+## Dataset
 
----
+The project uses the **Chest X-Ray Images (Pneumonia)** dataset by Paul Mooney on Kaggle. The notebook downloads the dataset at runtime rather than committing medical images to the repository.
 
-##  Technologies Used
-- Python
-- TensorFlow & Keras
-- Convolutional Neural Networks (CNN)
-- Google Colab
-- Kaggle API
-- Matplotlib, NumPy, Scikit-learn
+## Grad-CAM
 
----
+**Gradient-weighted Class Activation Mapping (Grad-CAM)** uses gradients of the target output with respect to convolutional feature maps to create a coarse spatial importance map.
 
-## How to Run
-1. Open the notebook in Google Colab
-2. Configure Kaggle API credentials
-3. Run all cells sequentially to download the dataset, train the CNN model, and evaluate performance
+For this binary classifier, the target is the positive **Pneumonia** output. The heatmap highlights regions that most influenced that score.
 
-> Note: Model training may take time depending on available GPU resources.
+A Grad-CAM highlight is evidence of model sensitivity, **not proof of a medically causal lesion or pathology**. Explanations should be evaluated together with prediction errors and, ideally, expert annotations.
 
----
+## XAI Error Analysis
 
-##  Results
-The CNN model successfully learns discriminative features from chest X-ray images and achieves strong classification performance, demonstrating the effectiveness of CNNs in medical image analysis.
+`xai_analysis.py` provides a reproducible workflow:
 
----
+1. Load the saved Keras model.
+2. Load a bounded, deterministic subset of the test set.
+3. Report precision, recall, F1 and ROC-AUC.
+4. Save a confusion matrix.
+5. Find representative TP/TN/FP/FN examples.
+6. Generate Grad-CAM visualizations for each available category.
+7. Apply a small brightness perturbation and compare heatmaps using cosine similarity.
 
-##  Conclusion
-This project highlights the practical application of Convolutional Neural Networks in healthcare-related computer vision tasks and showcases an end-to-end deep learning workflow suitable for real-world scenarios.
+Outputs are written to `outputs/xai/` and are not committed by default.
 
----
+## Project Structure
+
+```text
+.
+├── Pneumonia_Detection_using_CNN.ipynb   # training + evaluation notebook
+├── explainability/
+│   ├── gradcam.py                         # reusable Grad-CAM utilities
+│   └── README.md                          # notebook integration guide
+├── xai_analysis.py                        # XAI + error-analysis pipeline
+├── README.md
+└── .gitignore
+```
+
+## Tech Stack
+
+**ML / DL:** Python, TensorFlow, Keras, CNNs, scikit-learn  
+**XAI:** Grad-CAM, explainability/error analysis  
+**Computer Vision:** OpenCV, NumPy, Matplotlib  
+**Workflow:** Google Colab, Kaggle API, Git/GitHub
+
+## Running the Project
+
+### 1. Train the model
+
+Open `Pneumonia_Detection_using_CNN.ipynb` in Google Colab and run the dataset preparation, preprocessing, training and evaluation cells.
+
+**Never commit `kaggle.json`, API keys, tokens or other credentials.** Use Colab Secrets/environment variables or upload the credential only during a runtime session.
+
+### 2. Run Grad-CAM
+
+After loading the trained model:
+
+```python
+from explainability.gradcam import make_gradcam_heatmap, overlay_gradcam
+```
+
+See `explainability/README.md` for a complete visualization example.
+
+### 3. Run reproducible XAI analysis
+
+```bash
+pip install tensorflow scikit-learn opencv-python matplotlib numpy
+python xai_analysis.py \
+  --model pneumonia_cnn_model.h5 \
+  --data-dir /path/to/chest_xray \
+  --output-dir outputs/xai
+```
+
+For Colab, use `/content/chest_xray` and the saved model path.
+
+## Responsible XAI
+
+This project treats explainability as a **debugging and model-inspection tool**, not as a claim of clinical validity. A stronger medical-AI evaluation would additionally require external validation, calibration, subgroup analysis, leakage checks, expert review, and clinically meaningful localization ground truth.
+
+## Future Improvements
+
+- Compare Grad-CAM against LIME and SHAP where technically appropriate
+- Quantify explanation quality using expert/localization annotations
+- Evaluate explanation stability under multiple controlled perturbations
+- Add probability calibration and threshold analysis
+- Add a lightweight inference UI for prediction + explanation
+- Add automated tests and CI for the XAI utilities
